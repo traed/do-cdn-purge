@@ -6,6 +6,11 @@ fi
 
 ENDPOINTS=$(curl -X GET -H "Content-Type: application/json" -H "Authorization: Bearer ${PLUGIN_TOKEN}" "https://api.digitalocean.com/v2/cdn/endpoints")
 
+if [ ! $ENDPOINTS ]; then
+	echo "Could not find any endpoints. Check that your token and origin parameteras are valid."
+	exit 1
+fi
+
 for row in $(echo "${ENDPOINTS}" | jq -c '.endpoints[] | @base64'); do
 	_jq() {
 		echo ${row} | base64 -d | jq -r ${1}
@@ -25,7 +30,8 @@ if [ $ID ]; then
 fi
 
 if [[ "${STATUS}" -gt "299" ]]; then
-	exit 1
+	echo "Recieved response with invalid status ${STATUS}"
+	exit 2
 fi
 
 exit 0
